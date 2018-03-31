@@ -14,13 +14,13 @@
 ```bash  
   
 $ python3.5 bars.py # possibly requires call of python3 executive instead of just python  
-Enter file name or path to file with bars info (default bars.json) -> bars.json
-The biggest bar is named: Спорт бар «Красная машина» with: 450 seats
-The smallest bar is named: БАР. СОКИ with: 0 seats
-Enter geo coordinates separeted by comma in format: longitude, latitude
- for example: 37.621, 55.76536 -> 37.621, 55.76536
-The closest bar is named: Глобал бар НК with longitude: 37.62122454797518 and latitude: 55.76514637303136
- 
+Введите имя файла с информацией  о барах или путь к нему (по-умолчанию bars.json) -> bars.json
+Самый большой бар: Спорт бар «Красная машина» с: 450 мест
+Наименьший бар: БАР. СОКИ с: 0 мест
+Введите координаты, разделенные запятой в формате: долгота, широта
+ например: 37.621, 55.76536 -> 37.621, 55.765
+Ближайший бар: Глобал бар НК с долготой: 37.62122454797518 и широтой: 55.76514637303136
+
   
 ```  
   
