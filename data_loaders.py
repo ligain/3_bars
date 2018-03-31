@@ -10,8 +10,8 @@ def load_from_json(filepath):
         return status, str(err)
 
     try:
-        result = json.load(json_file)
+        output = json.load(json_file)
     except json.decoder.JSONDecodeError as err:
         return status, str(err)
 
-    return True, result
+    return True, output
