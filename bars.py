@@ -64,15 +64,7 @@ def get_args():
 if __name__ == '__main__':
     bars_filepath, user_longitude, user_latitude = get_args()
 
-    bars_data = []
-    try:
-        bars_data = load_data(bars_filepath)
-    except FileNotFoundError as err:
-        print('Файл с данными не найден: {}'.format(str(err)))
-        exit()
-    except json.decoder.JSONDecodeError as err:
-        print('Не валидный json файл: {}'.format(str(err)))
-        exit()
+    bars_data = load_data(bars_filepath)
 
     if not bars_data:
         print('Отсутствует информация о барах')
