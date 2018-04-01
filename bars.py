@@ -1,14 +1,34 @@
 import json
 import argparse
+from math import sin, cos, radians, acos
 
 
-def calc_geo_cords_delta(user_longitude, user_latitude, bar):
-    bar_longitude = bar['geometry']['coordinates'][0]
-    bar_latitude = bar['geometry']['coordinates'][1]
+# in kilometers
+EARTH_RADIUS = 6371.0
+
+
+def calc_geo_distance(user_longitude, user_latitude, bar, earth_radius=EARTH_RADIUS):
+    """
+    Calculate distance between 2 geo coordinates
+    using this algorithm https://en.wikipedia.org/wiki/Great-circle_distance
+    """
+
+    bar_longitude = radians(bar['geometry']['coordinates'][0])
+    bar_latitude = radians(bar['geometry']['coordinates'][1])
+
+    user_longitude = radians(user_longitude)
+    user_latitude = radians(user_latitude)
+
+    delta_angle = acos(
+        sin(bar_latitude) * sin(user_latitude) +
+        cos(bar_latitude) * cos(user_latitude) * cos(bar_longitude - user_longitude)
+    )
+
+    # arc distance in kilometers
+    distance = earth_radius * delta_angle
 
     return (
-        abs(user_longitude - bar_longitude),
-        abs(user_latitude - bar_latitude),
+        distance,
         bar
     )
 
@@ -28,28 +48,32 @@ def get_smallest_bar(bars):
 
 
 def get_closest_bar(bars, longitude, latitude):
-    # generate and sort a list of tuples with coordinates differences like:
-    # [(0.45, 0.5656, {...}), (0.0012, 0.322, {...}), (0.985, 0.124554, {...}), ...]
-    deltas = list(min(calc_geo_cords_delta(longitude, latitude, bar) for bar in bars))
-    closest_bar = deltas[2]
+    distances = [calc_geo_distance(longitude, latitude, bar) for bar in bars]
+    _, closest_bar = min(distances, key=lambda k: k[0])
     return closest_bar
 
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description='Скрипт расчета информации о московских барах.')
-    parser.add_argument('-f', '--filepath',
-                        help='Путь к файлу с информацией '
-                             'о барах в формате json',
-                        default='bars.json')
-    parser.add_argument('--longitude',
-                        help='Долгота вашего местонахождения',
-                        type=float,
-                        required=True)
-    parser.add_argument('--latitude',
-                        help='Широта вашего местонахождения',
-                        type=float,
-                        required=True)
+        description='Скрипт расчета информации о московских барах.'
+    )
+    parser.add_argument(
+        '-f', '--filepath',
+        help='Путь к файлу с информацией о барах в формате json',
+        default='bars.json'
+    )
+    parser.add_argument(
+        '--longitude',
+        help='Долгота вашего местонахождения',
+        type=float,
+        required=True
+    )
+    parser.add_argument(
+        '--latitude',
+        help='Широта вашего местонахождения',
+        type=float,
+        required=True
+    )
     return parser.parse_args()
 
 
