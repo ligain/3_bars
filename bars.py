@@ -87,11 +87,7 @@ if __name__ == '__main__':
           'с: {bar[properties][Attributes][SeatsCount]} мест'.format(bar=smallest))
 
     if not user_longitude or not user_latitude:
-        try:
-            user_longitude, user_latitude = input_user_cords()
-        except ValueError:
-            print("Широта и долгота указаны в неправильном формате")
-            exit()
+        user_longitude, user_latitude = input_user_cords()
 
     closest = get_closest_bar(bars_data, user_longitude, user_latitude)
     print('Ближайший бар: {bar[properties][Attributes][Name]} '
