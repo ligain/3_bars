@@ -1,13 +1,10 @@
-from data_loaders import load_from_json
+import json
+import argparse
 
 
-def _cords_delta(user_longitude, user_latitude, bar):
-    try:
-        bar_longitude = bar['geometry']['coordinates'][0]
-        bar_latitude = bar['geometry']['coordinates'][1]
-    except KeyError:
-        print('Invalid bars data')
-        raise
+def calc_geo_cords_delta(user_longitude, user_latitude, bar):
+    bar_longitude = bar['geometry']['coordinates'][0]
+    bar_latitude = bar['geometry']['coordinates'][1]
 
     return (
         abs(user_longitude - bar_longitude),
@@ -16,86 +13,70 @@ def _cords_delta(user_longitude, user_latitude, bar):
     )
 
 
-def _input_user_cords():
-    cords = False
-
-    while True:
-        raw_input = input("Введите координаты, разделенные запятой "
-                          "в формате: долгота, широта\n"
-                          " например: 37.621, 55.76536 -> ")
-        try:
-            cords = list(map(float, raw_input.split(',')))
-        except ValueError:
-            print('Invalid cords input. Try again.')
-            continue
-
-        if cords:
-            break
-
+def input_user_cords():
+    raw_input = input("Введите координаты, разделенные запятой "
+                      "в формате: долгота, широта\n"
+                      " например: 37.621, 55.76536 -> ")
+    cords = list(map(float, raw_input.split(',')))
     return cords
 
 
 def load_data(filepath):
-    ok, res = load_from_json(filepath)
-
-    if not ok:
-        print('An error occured: ', res)
-        return
-
-    return res
+    with open(filepath, 'r') as json_file:
+        output = json.load(json_file)
+    return output
 
 
 def get_biggest_bar(bars_data):
     bars = bars_data.get("features")
-
-    if not bars:
-        print("there is no root object 'features'")
-        return
-
-    try:
-        biggest = max(bars, key=lambda bar: bar['properties']['Attributes']['SeatsCount'])
-    except KeyError:
-        print('Invalid bars data')
-        raise
-
-    return biggest
+    return max(bars, key=lambda bar: bar['properties']['Attributes']['SeatsCount'])
 
 
 def get_smallest_bar(bars_data):
     bars = bars_data.get("features")
-
-    if not bars:
-        print("there is no root object 'features'")
-        return
-
-    try:
-        smallest = min(bars, key=lambda bar: bar['properties']['Attributes']['SeatsCount'])
-    except KeyError:
-        print('Invalid bars data')
-        raise
-
-    return smallest
+    return min(bars, key=lambda bar: bar['properties']['Attributes']['SeatsCount'])
 
 
 def get_closest_bar(bars_data, longitude, latitude):
     bars = bars_data.get("features")
-
-    if not bars:
-        print("there is no root object 'features'")
-        return
-    deltas = list(min(_cords_delta(longitude, latitude, bar) for bar in bars))
+    deltas = list(min(calc_geo_cords_delta(longitude, latitude, bar) for bar in bars))
     closest_bar = deltas[2]
     return closest_bar
 
 
+def get_args():
+    parser = argparse.ArgumentParser(
+        description='Скрипт расчета информации о московских барах.')
+    parser.add_argument("-f", "--filename",
+                        help="Путь к файлу с информацией "
+                             "о барах в формате json",
+                        default='bars.json')
+    parser.add_argument("--longitude",
+                        help="Долгота вашего местонахождения",
+                        type=float)
+    parser.add_argument("--latitude",
+                        help="Широта вашего местонахождения",
+                        type=float)
+    args = parser.parse_args()
+    return args.filename, args.longitude, args.latitude
+
+
 if __name__ == '__main__':
-    bars_filepath = input("Введите имя файла с информацией  "
-                          "о барах или путь к нему (по-умолчанию bars.json) -> ")
+    bars_filepath, user_longitude, user_latitude = get_args()
 
-    if not bars_filepath:
-        bars_filepath = 'bars.json'
+    bars_data = []
+    try:
+        bars_data = load_data(bars_filepath)
+    except FileNotFoundError as err:
+        print('Файл с данными не найден: {}'.format(str(err)))
+        exit()
+    except json.decoder.JSONDecodeError as err:
+        print('Не валидный json файл: {}'.format(str(err)))
+        exit()
 
-    bars_data = load_data(bars_filepath)
+    if not bars_data:
+        print('Отсутствует информация о барах')
+        exit()
 
     biggest = get_biggest_bar(bars_data)
     print('Самый большой бар: {bar[properties][Attributes][Name]} '
@@ -105,7 +86,13 @@ if __name__ == '__main__':
     print('Наименьший бар: {bar[properties][Attributes][Name]} '
           'с: {bar[properties][Attributes][SeatsCount]} мест'.format(bar=smallest))
 
-    user_longitude, user_latitude = _input_user_cords()
+    if not user_longitude or not user_latitude:
+        try:
+            user_longitude, user_latitude = input_user_cords()
+        except ValueError:
+            print("Широта и долгота указаны в неправильном формате")
+            exit()
+
     closest = get_closest_bar(bars_data, user_longitude, user_latitude)
     print('Ближайший бар: {bar[properties][Attributes][Name]} '
           'с долготой: {bar[geometry][coordinates][0]} '
