@@ -3,11 +3,7 @@ import argparse
 from math import sin, cos, radians, acos
 
 
-# in kilometers
-EARTH_RADIUS = 6371.0
-
-
-def calc_geo_distance(user_longitude, user_latitude, bar, earth_radius=EARTH_RADIUS):
+def calc_geo_distance(user_longitude, user_latitude, bar, earth_radius=6371.0):
     """
     Calculate distance between 2 geo coordinates
     using this algorithm https://en.wikipedia.org/wiki/Great-circle_distance
@@ -24,7 +20,6 @@ def calc_geo_distance(user_longitude, user_latitude, bar, earth_radius=EARTH_RAD
         cos(bar_latitude) * cos(user_latitude) * cos(bar_longitude - user_longitude)
     )
 
-    # arc distance in kilometers
     distance = earth_radius * delta_angle
 
     return (
@@ -48,9 +43,7 @@ def get_smallest_bar(bars):
 
 
 def get_closest_bar(bars, longitude, latitude):
-    distances = [calc_geo_distance(longitude, latitude, bar) for bar in bars]
-    _, closest_bar = min(distances, key=lambda k: k[0])
-    return closest_bar
+    return min(bars, key=lambda bar: calc_geo_distance(longitude, latitude, bar))
 
 
 def get_args():
