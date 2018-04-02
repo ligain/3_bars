@@ -3,10 +3,12 @@ import argparse
 from math import sin, cos, radians, acos
 
 
-def calc_geo_distance(user_longitude, user_latitude, bar, earth_radius=6371.0):
+def calc_geo_distance(user_longitude, user_latitude,
+                      bar, earth_radius=6371.0):
     """
     Calculate distance between 2 geo coordinates
-    using this algorithm https://en.wikipedia.org/wiki/Great-circle_distance
+    using this algorithm
+    https://en.wikipedia.org/wiki/Great-circle_distance
     """
 
     bar_longitude = radians(bar['geometry']['coordinates'][0])
@@ -17,15 +19,13 @@ def calc_geo_distance(user_longitude, user_latitude, bar, earth_radius=6371.0):
 
     delta_angle = acos(
         sin(bar_latitude) * sin(user_latitude) +
-        cos(bar_latitude) * cos(user_latitude) * cos(bar_longitude - user_longitude)
+        cos(bar_latitude) * cos(user_latitude) *
+        cos(bar_longitude - user_longitude)
     )
 
     distance = earth_radius * delta_angle
 
-    return (
-        distance,
-        bar
-    )
+    return distance
 
 
 def load_data(filepath):
@@ -35,15 +35,24 @@ def load_data(filepath):
 
 
 def get_biggest_bar(bars):
-    return max(bars, key=lambda bar: bar['properties']['Attributes']['SeatsCount'])
+    return max(
+        bars,
+        key=lambda bar: bar['properties']['Attributes']['SeatsCount']
+    )
 
 
 def get_smallest_bar(bars):
-    return min(bars, key=lambda bar: bar['properties']['Attributes']['SeatsCount'])
+    return min(
+        bars,
+        key=lambda bar: bar['properties']['Attributes']['SeatsCount']
+    )
 
 
 def get_closest_bar(bars, longitude, latitude):
-    return min(bars, key=lambda bar: calc_geo_distance(longitude, latitude, bar))
+    return min(
+        bars,
+        key=lambda bar: calc_geo_distance(longitude, latitude, bar)
+    )
 
 
 def get_args():
@@ -82,13 +91,17 @@ if __name__ == '__main__':
 
     biggest_bar = get_biggest_bar(bars_data)
     print('Самый большой бар: {bar[properties][Attributes][Name]} '
-          'с: {bar[properties][Attributes][SeatsCount]} мест'.format(bar=biggest_bar))
+          'с: {bar[properties][Attributes][SeatsCount]} мест'
+          .format(bar=biggest_bar))
 
     smallest_bar = get_smallest_bar(bars_data)
     print('Наименьший бар: {bar[properties][Attributes][Name]} '
-          'с: {bar[properties][Attributes][SeatsCount]} мест'.format(bar=smallest_bar))
+          'с: {bar[properties][Attributes][SeatsCount]} мест'
+          .format(bar=smallest_bar))
 
-    closest_bar = get_closest_bar(bars_data, args.longitude, args.latitude)
+    closest_bar = get_closest_bar(bars_data,
+                                  args.longitude, args.latitude)
     print('Ближайший бар: {bar[properties][Attributes][Name]} '
           'с долготой: {bar[geometry][coordinates][0]} '
-          'и широтой: {bar[geometry][coordinates][1]}'.format(bar=closest_bar))
+          'и широтой: {bar[geometry][coordinates][1]}'
+          .format(bar=closest_bar))
